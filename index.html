@@ -1,0 +1,1595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#111111">
+<title>Health Protocol Dashboard</title>
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23111' width='100' height='100' rx='20'/><text x='50' y='62' text-anchor='middle' font-size='50'>%E2%9A%95</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#111;
+  --card:#1a1a1a;
+  --card-hover:#1e1e1e;
+  --input:#222;
+  --border:#2a2a2a;
+  --accent:#c9b99a;
+  --accent-dim:rgba(201,185,154,0.15);
+  --accent-glow:rgba(201,185,154,0.08);
+  --text:#e8e0d4;
+  --text-sec:#999;
+  --text-muted:#555;
+  --success:#6ecf8a;
+  --radius:14px;
+}
+
+html,body{
+  font-family:'Inter',system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  height:100%;
+  overflow-x:hidden;
+}
+
+/* ===== LAYOUT ===== */
+.app{
+  max-width:900px;
+  margin:0 auto;
+  padding:16px 20px 100px;
+  min-height:100vh;
+}
+
+/* ===== HEADER ===== */
+.header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 0 20px;
+}
+.header-title{
+  font-size:1.1rem;font-weight:600;
+  letter-spacing:-0.02em;
+  color:var(--text);
+}
+.header-title span{color:var(--accent)}
+.header-actions{display:flex;gap:8px}
+.header-btn{
+  background:var(--card);
+  border:1px solid var(--border);
+  color:var(--text-sec);
+  padding:7px 14px;border-radius:8px;
+  font-family:inherit;font-size:0.75rem;font-weight:500;
+  cursor:pointer;transition:all 0.2s ease;
+}
+.header-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ===== DATE NAV ===== */
+.date-nav{
+  display:flex;align-items:center;justify-content:center;
+  gap:16px;
+  margin-bottom:24px;
+}
+.date-nav-btn{
+  background:none;border:none;
+  color:var(--text-muted);
+  font-size:1.1rem;cursor:pointer;
+  padding:6px 10px;border-radius:8px;
+  transition:all 0.2s ease;
+}
+.date-nav-btn:hover{color:var(--accent);background:var(--accent-glow)}
+.date-display{
+  font-size:0.95rem;font-weight:500;
+  color:var(--text-sec);
+  min-width:180px;text-align:center;
+}
+.date-display .day{color:var(--text);font-weight:600}
+.today-badge{
+  font-size:0.6rem;font-weight:600;
+  text-transform:uppercase;letter-spacing:0.1em;
+  color:var(--accent);
+  background:var(--accent-dim);
+  padding:2px 8px;border-radius:4px;
+  margin-left:8px;
+}
+
+/* ===== TABS ===== */
+.tabs{
+  display:flex;gap:0;
+  border-bottom:1px solid var(--border);
+  margin-bottom:24px;
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+.tabs::-webkit-scrollbar{display:none}
+.tab{
+  padding:10px 20px;
+  font-size:0.78rem;font-weight:500;
+  color:var(--text-muted);
+  cursor:pointer;
+  border-bottom:2px solid transparent;
+  transition:all 0.2s ease;
+  white-space:nowrap;
+  background:none;border-top:none;border-left:none;border-right:none;
+  font-family:inherit;
+}
+.tab:hover{color:var(--text-sec)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+.tab-content{display:none}
+.tab-content.active{display:block;animation:fadeUp 0.3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ===== DASHBOARD TAB ===== */
+.dash-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+  margin-bottom:20px;
+}
+.dash-progress{
+  grid-column:1/-1;
+  display:flex;align-items:center;justify-content:center;
+  gap:32px;
+  padding:28px 24px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+}
+.progress-ring-wrap{
+  width:110px;height:110px;
+  position:relative;flex-shrink:0;
+}
+.progress-ring-wrap svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring-bg{fill:none;stroke:var(--border);stroke-width:7}
+.ring-fill{
+  fill:none;stroke:var(--accent);stroke-width:7;
+  stroke-linecap:round;
+  transition:stroke-dashoffset 0.6s ease;
+}
+.ring-text{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.ring-pct{font-size:1.6rem;font-weight:700;color:var(--text)}
+.ring-label{font-size:0.65rem;color:var(--text-muted);margin-top:2px}
+
+.dash-progress-details{display:flex;flex-direction:column;gap:10px}
+.dash-group-row{display:flex;align-items:center;gap:10px}
+.dash-group-label{font-size:0.78rem;color:var(--text-sec);width:100px}
+.dash-group-bar{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden;min-width:80px}
+.dash-group-fill{height:100%;background:var(--accent);border-radius:3px;transition:width 0.4s ease}
+.dash-group-count{font-size:0.7rem;color:var(--text-muted);width:30px;text-align:right}
+
+.stat-card{
+  padding:18px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  text-align:center;
+}
+.stat-value{font-size:1.5rem;font-weight:700;color:var(--text)}
+.stat-value.empty{color:var(--text-muted);font-size:1rem;font-weight:400}
+.stat-label{font-size:0.65rem;color:var(--text-muted);margin-top:4px;text-transform:uppercase;letter-spacing:0.08em}
+
+.dash-screenshot{
+  grid-column:1/-1;
+  padding:16px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+}
+.dash-screenshot-label{font-size:0.7rem;color:var(--text-muted);margin-bottom:8px}
+.dash-screenshot img{width:100%;border-radius:8px;cursor:pointer}
+
+/* ===== PROTOCOL TAB ===== */
+.protocol-section{
+  margin-bottom:20px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  overflow:hidden;
+}
+.protocol-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px;
+  cursor:pointer;
+  transition:background 0.15s ease;
+}
+.protocol-header:hover{background:var(--card-hover)}
+.protocol-header-left{display:flex;align-items:center;gap:10px}
+.protocol-icon{font-size:1rem}
+.protocol-title{font-size:0.85rem;font-weight:600;color:var(--text)}
+.protocol-time{font-size:0.7rem;color:var(--text-muted);margin-left:4px}
+.protocol-count{
+  font-size:0.7rem;font-weight:600;
+  color:var(--text-muted);
+  background:var(--input);
+  padding:3px 10px;border-radius:10px;
+}
+.protocol-count.complete{color:var(--success);background:rgba(110,207,138,0.1)}
+
+.protocol-header-right{display:flex;align-items:center;gap:8px}
+
+.take-all-btn{
+  padding:4px 10px;border-radius:6px;
+  border:1px solid var(--border);
+  background:none;
+  font-family:inherit;font-size:0.65rem;font-weight:600;
+  color:var(--text-muted);
+  cursor:pointer;transition:all 0.2s ease;
+  white-space:nowrap;
+}
+.take-all-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-glow)}
+.take-all-btn.all-done{border-color:rgba(110,207,138,0.3);color:var(--success);background:rgba(110,207,138,0.06)}
+
+.protocol-items{
+  padding:4px 18px 16px;
+  display:flex;flex-wrap:wrap;gap:8px;
+}
+.protocol-items.collapsed{display:none}
+
+.pill-chip{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:8px 14px;
+  border-radius:8px;
+  border:1px solid var(--border);
+  background:var(--bg);
+  font-size:0.8rem;font-weight:500;
+  color:var(--text-muted);
+  cursor:pointer;
+  transition:all 0.2s ease;
+  user-select:none;
+}
+.pill-chip:hover{border-color:#444;color:var(--text-sec)}
+.pill-chip.checked{
+  border-color:rgba(201,185,154,0.4);
+  background:var(--accent-dim);
+  color:var(--accent);
+}
+.pill-chip:active{transform:scale(0.96)}
+.pill-chip .check{
+  width:14px;height:14px;border-radius:4px;
+  border:1.5px solid var(--text-muted);
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.6rem;
+  transition:all 0.2s ease;
+  flex-shrink:0;
+}
+.pill-chip.checked .check{
+  border-color:var(--accent);
+  background:var(--accent);
+  color:var(--bg);
+}
+.pill-qty{font-size:0.65rem;color:var(--text-muted);opacity:0.7}
+
+/* Dose inputs (peptides/valium) */
+.dose-row{
+  display:flex;align-items:center;gap:10px;
+  padding:6px 0;
+  width:100%;
+}
+.dose-name{font-size:0.8rem;color:var(--text-sec);width:110px;flex-shrink:0}
+.dose-name .optional{font-size:0.65rem;color:var(--text-muted)}
+.dose-input{
+  width:60px;
+  padding:6px 10px;
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:6px;
+  color:var(--text);
+  font-family:inherit;font-size:0.8rem;
+  text-align:center;
+  outline:none;
+  transition:border-color 0.2s ease;
+}
+.dose-input:focus{border-color:var(--accent)}
+.dose-input::-webkit-inner-spin-button{-webkit-appearance:none}
+.dose-unit{font-size:0.7rem;color:var(--text-muted)}
+
+/* ===== OURA TAB ===== */
+.oura-upload{
+  margin-bottom:16px;
+  border:2px dashed var(--border);
+  border-radius:var(--radius);
+  padding:28px 20px;
+  text-align:center;
+  cursor:pointer;
+  transition:all 0.2s ease;
+  position:relative;
+}
+.oura-upload:hover,.oura-upload.drag-over{
+  border-color:var(--accent);
+  background:var(--accent-glow);
+}
+.oura-upload-icon{font-size:1.6rem;margin-bottom:6px;opacity:0.4}
+.oura-upload-text{font-size:0.8rem;color:var(--text-muted)}
+.oura-upload-text span{color:var(--accent);text-decoration:underline;cursor:pointer}
+.oura-upload input{display:none}
+
+.oura-gallery{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(110px,1fr));
+  gap:10px;
+  margin-bottom:16px;
+}
+.oura-thumb{
+  position:relative;
+  border-radius:10px;
+  overflow:hidden;
+  border:1px solid var(--border);
+  cursor:pointer;
+  transition:border-color 0.2s ease;
+}
+.oura-thumb:hover{border-color:#444}
+.oura-thumb img{width:100%;display:block}
+.oura-thumb-remove{
+  position:absolute;top:4px;right:4px;
+  width:22px;height:22px;border-radius:50%;
+  background:rgba(0,0,0,0.7);border:none;
+  color:#fff;font-size:0.75rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:opacity 0.2s ease;
+}
+.oura-thumb:hover .oura-thumb-remove{opacity:1}
+
+.oura-extract-bar{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:20px;
+  padding:12px 16px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:10px;
+}
+.oura-extract-btn{
+  padding:8px 16px;border-radius:8px;
+  border:1px solid rgba(201,185,154,0.35);
+  background:var(--accent-dim);
+  font-family:inherit;font-size:0.75rem;font-weight:600;
+  color:var(--accent);cursor:pointer;
+  transition:all 0.2s ease;
+  white-space:nowrap;
+}
+.oura-extract-btn:hover{background:rgba(201,185,154,0.2);border-color:var(--accent)}
+.oura-extract-btn:disabled{opacity:0.4;cursor:default}
+.oura-extract-status{font-size:0.75rem;color:var(--text-muted);flex:1}
+.oura-extract-status.error{color:#e88a7d}
+.oura-extract-status.success{color:var(--success)}
+
+.oura-settings-link{
+  font-size:0.72rem;color:var(--text-muted);
+  cursor:pointer;text-decoration:underline;
+  transition:color 0.2s ease;
+}
+.oura-settings-link:hover{color:var(--accent)}
+
+/* Settings modal */
+.settings-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,0.7);z-index:90;
+  align-items:center;justify-content:center;
+}
+.settings-overlay.visible{display:flex}
+.settings-panel{
+  width:90%;max-width:420px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:24px;
+}
+.settings-title{
+  font-size:0.95rem;font-weight:600;color:var(--text);
+  margin-bottom:4px;
+}
+.settings-desc{font-size:0.78rem;color:var(--text-muted);margin-bottom:16px;line-height:1.5}
+.settings-label{
+  font-size:0.65rem;font-weight:600;
+  text-transform:uppercase;letter-spacing:0.08em;
+  color:var(--text-muted);margin-bottom:6px;
+}
+.settings-input{
+  width:100%;padding:10px 14px;
+  background:var(--input);border:1px solid var(--border);
+  border-radius:8px;color:var(--text);
+  font-family:'Inter',monospace;font-size:0.8rem;
+  outline:none;margin-bottom:16px;
+}
+.settings-input:focus{border-color:var(--accent)}
+.settings-actions{display:flex;gap:8px;justify-content:flex-end}
+.settings-save{
+  padding:8px 20px;border-radius:8px;border:none;
+  background:var(--accent);color:var(--bg);
+  font-family:inherit;font-size:0.78rem;font-weight:600;
+  cursor:pointer;
+}
+.settings-cancel{
+  padding:8px 20px;border-radius:8px;
+  border:1px solid var(--border);background:none;
+  color:var(--text-sec);font-family:inherit;font-size:0.78rem;
+  cursor:pointer;
+}
+
+.oura-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+  gap:12px;
+}
+.oura-field{
+  padding:14px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:10px;
+}
+.oura-field-label{
+  font-size:0.65rem;font-weight:600;
+  text-transform:uppercase;letter-spacing:0.06em;
+  color:var(--text-muted);
+  margin-bottom:8px;
+}
+.oura-field input{
+  width:100%;
+  padding:8px 10px;
+  background:var(--input);
+  border:1px solid var(--border);
+  border-radius:6px;
+  color:var(--text);
+  font-family:inherit;font-size:0.9rem;
+  outline:none;
+  transition:border-color 0.2s ease;
+}
+.oura-field input:focus{border-color:var(--accent)}
+.oura-section-title{
+  font-size:0.7rem;font-weight:600;
+  text-transform:uppercase;letter-spacing:0.1em;
+  color:var(--text-muted);
+  margin:20px 0 12px;
+  padding-bottom:6px;
+  border-bottom:1px solid var(--border);
+}
+.oura-section-title:first-child{margin-top:0}
+
+/* ===== JOURNAL TAB ===== */
+.journal-section{
+  margin-bottom:20px;
+  padding:18px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+}
+.journal-label{
+  font-size:0.7rem;font-weight:600;
+  text-transform:uppercase;letter-spacing:0.08em;
+  color:var(--text-muted);
+  margin-bottom:10px;
+}
+.slider-wrap{
+  display:flex;align-items:center;gap:14px;
+}
+.slider-value{
+  font-size:1.3rem;font-weight:700;
+  color:var(--accent);
+  width:32px;text-align:center;
+}
+.slider{
+  flex:1;
+  -webkit-appearance:none;appearance:none;
+  height:6px;
+  background:var(--border);
+  border-radius:3px;
+  outline:none;
+}
+.slider::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  width:20px;height:20px;
+  background:var(--accent);
+  border-radius:50%;
+  cursor:pointer;
+  box-shadow:0 0 8px rgba(201,185,154,0.3);
+}
+.slider::-moz-range-thumb{
+  width:20px;height:20px;
+  background:var(--accent);
+  border:none;border-radius:50%;
+  cursor:pointer;
+}
+
+.toggle-wrap{
+  display:flex;align-items:center;gap:12px;
+}
+.toggle{
+  width:44px;height:24px;
+  background:var(--border);
+  border-radius:12px;
+  position:relative;
+  cursor:pointer;
+  transition:background 0.2s ease;
+  border:none;
+  flex-shrink:0;
+}
+.toggle.on{background:var(--accent)}
+.toggle::after{
+  content:'';
+  position:absolute;top:3px;left:3px;
+  width:18px;height:18px;
+  background:#fff;border-radius:50%;
+  transition:left 0.2s ease;
+}
+.toggle.on::after{left:23px}
+.toggle-label{font-size:0.85rem;color:var(--text-sec)}
+
+.journal-input{
+  width:100%;
+  padding:10px 14px;
+  background:var(--input);
+  border:1px solid var(--border);
+  border-radius:8px;
+  color:var(--text);
+  font-family:inherit;font-size:0.85rem;
+  outline:none;
+  transition:border-color 0.2s ease;
+  resize:vertical;
+}
+.journal-input:focus{border-color:var(--accent)}
+textarea.journal-input{min-height:80px;line-height:1.6}
+
+.journal-row{display:flex;gap:12px;margin-bottom:12px}
+.journal-row .journal-section{flex:1;margin-bottom:0}
+
+/* ===== TRENDS TAB ===== */
+.trends-period{
+  display:flex;gap:6px;margin-bottom:20px;
+}
+.trends-period-btn{
+  padding:6px 14px;border-radius:6px;
+  border:1px solid var(--border);
+  background:none;
+  font-family:inherit;font-size:0.72rem;font-weight:500;
+  color:var(--text-muted);cursor:pointer;
+  transition:all 0.2s ease;
+}
+.trends-period-btn.active{
+  border-color:rgba(201,185,154,0.4);
+  background:var(--accent-dim);
+  color:var(--accent);
+}
+.charts-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+  margin-bottom:24px;
+}
+.chart-card{
+  padding:16px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+}
+.chart-title{
+  font-size:0.7rem;font-weight:600;
+  text-transform:uppercase;letter-spacing:0.08em;
+  color:var(--text-muted);
+  margin-bottom:12px;
+}
+.chart-wrap{height:160px;position:relative}
+.chart-empty{
+  display:flex;align-items:center;justify-content:center;
+  height:100%;
+  font-size:0.8rem;color:var(--text-muted);
+}
+
+.history-list{
+  display:flex;flex-direction:column;gap:8px;
+}
+.history-entry{
+  display:flex;align-items:center;gap:14px;
+  padding:12px 16px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:10px;
+  cursor:pointer;
+  transition:border-color 0.2s ease;
+}
+.history-entry:hover{border-color:#444}
+.history-date{font-size:0.8rem;font-weight:600;color:var(--text);width:90px;flex-shrink:0}
+.history-stats{display:flex;gap:16px;flex:1;flex-wrap:wrap}
+.history-stat{font-size:0.75rem;color:var(--text-sec)}
+.history-stat span{font-weight:600;color:var(--text)}
+.history-dots{
+  display:flex;gap:3px;
+}
+.history-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--border);
+}
+.history-dot.filled{background:var(--accent)}
+
+/* ===== SCREENSHOT MODAL ===== */
+.modal-overlay{
+  display:none;
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.85);
+  z-index:100;
+  align-items:center;justify-content:center;
+  cursor:pointer;
+}
+.modal-overlay.visible{display:flex}
+.modal-overlay img{
+  max-width:90%;max-height:90%;
+  border-radius:8px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.5);
+}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:600px){
+  .app{padding:12px 14px 100px}
+  .header{flex-direction:column;gap:10px;align-items:flex-start;padding:12px 0 16px}
+  .header-actions{width:100%;display:flex;gap:6px}
+  .header-btn{flex:1;text-align:center;padding:10px 8px}
+  .date-nav{margin-bottom:16px}
+  .dash-grid{grid-template-columns:1fr 1fr;gap:10px}
+  .dash-progress{flex-direction:column;gap:20px;padding:20px}
+  .charts-grid{grid-template-columns:1fr}
+  .oura-grid{grid-template-columns:1fr 1fr}
+  .oura-gallery{grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px}
+  .journal-row{flex-direction:column}
+  .tab{padding:12px 14px;font-size:0.75rem}
+  .protocol-items{gap:6px}
+  .pill-chip{padding:10px 13px;font-size:0.8rem;min-height:44px}
+  .take-all-btn{padding:6px 12px;font-size:0.7rem;min-height:36px}
+  .slider::-webkit-slider-thumb{width:28px;height:28px}
+  .slider::-moz-range-thumb{width:28px;height:28px}
+  .toggle{width:52px;height:30px}
+  .toggle::after{width:22px;height:22px;top:3px;left:3px}
+  .toggle.on::after{left:27px}
+  .journal-input{padding:14px;font-size:0.9rem}
+  .oura-field input{padding:12px;font-size:1rem}
+  .dose-input{padding:10px;font-size:0.9rem;width:70px}
+  .oura-extract-bar{flex-wrap:wrap}
+}
+@media(max-width:400px){
+  .oura-grid{grid-template-columns:1fr}
+  .stat-card{padding:12px}
+  .dash-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-title"><span>&#9673;</span> Health Protocol</div>
+    <div class="header-actions">
+      <button class="header-btn" onclick="copyForClaude()" id="copyBtn">Copy for Claude</button>
+      <button class="header-btn" onclick="exportCSV()">Export CSV</button>
+    </div>
+  </div>
+
+  <!-- DATE NAV -->
+  <div class="date-nav">
+    <button class="date-nav-btn" onclick="changeDate(-1)">&#8249;</button>
+    <div class="date-display" id="dateDisplay"></div>
+    <button class="date-nav-btn" onclick="changeDate(1)">&#8250;</button>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-tab="dashboard">Dashboard</button>
+    <button class="tab" data-tab="protocol">Protocol</button>
+    <button class="tab" data-tab="oura">Oura</button>
+    <button class="tab" data-tab="journal">Journal</button>
+    <button class="tab" data-tab="trends">Trends</button>
+  </div>
+
+  <!-- ===== DASHBOARD ===== -->
+  <div class="tab-content active" id="tab-dashboard"></div>
+
+  <!-- ===== PROTOCOL ===== -->
+  <div class="tab-content" id="tab-protocol"></div>
+
+  <!-- ===== OURA ===== -->
+  <div class="tab-content" id="tab-oura"></div>
+
+  <!-- ===== JOURNAL ===== -->
+  <div class="tab-content" id="tab-journal"></div>
+
+  <!-- ===== TRENDS ===== -->
+  <div class="tab-content" id="tab-trends"></div>
+
+</div>
+
+<!-- Screenshot modal -->
+<div class="modal-overlay" id="screenshotModal" onclick="this.classList.remove('visible')">
+  <img id="modalImg" src="" alt="Screenshot">
+</div>
+
+<!-- Settings modal -->
+<div class="settings-overlay" id="settingsOverlay" onclick="if(event.target===this)closeSettings()">
+  <div class="settings-panel">
+    <div class="settings-title">Auto-Extract Settings</div>
+    <div class="settings-desc">Enter your Anthropic API key to auto-extract Oura data from screenshots using Claude's vision. Your key stays in your browser only.</div>
+    <div class="settings-label">Anthropic API Key</div>
+    <input class="settings-input" id="apiKeyInput" type="password" placeholder="sk-ant-api03-...">
+    <div class="settings-actions">
+      <button class="settings-cancel" onclick="closeSettings()">Cancel</button>
+      <button class="settings-save" onclick="saveApiKey()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== PROTOCOL DEFINITION =====
+const PROTOCOL = [
+  {
+    id:'morning', label:'Morning', time:'Morning', icon:'\u2600',
+    type:'check',
+    items:[
+      {id:'nac',name:'NAC'},{id:'l_lysine',name:'L-Lysine'},
+      {id:'lithium',name:'Lithium'},{id:'zinc',name:'Zinc'},
+      {id:'omega_coq10',name:'Omega + CoQ10'},{id:'methyl_folate',name:'Methyl Folate'}
+    ]
+  },
+  {
+    id:'pm9', label:'9pm', time:'9:00 PM', icon:'\u{1F319}',
+    type:'check',
+    items:[
+      {id:'melatonin',name:'Melatonin'},
+      {id:'mag_bis',name:'Mag Bisglycinate',qty:'\u00d72'},
+      {id:'ps',name:'Phosphatidylserine',qty:'\u00d73'},
+      {id:'mag_threonate_9',name:'Mag L-Threonate',qty:'\u00d72'},
+      {id:'l_theanine',name:'L-Theanine'},
+      {id:'inositol',name:'Inositol'}
+    ]
+  },
+  {
+    id:'pm1130', label:'11:30pm', time:'11:30 PM', icon:'\u{1F4A4}',
+    type:'check',
+    items:[
+      {id:'apigenin',name:'Apigenin'},
+      {id:'mag_threonate_11',name:'Mag L-Threonate',qty:'\u00d71'},
+      {id:'glycine',name:'Glycine'},{id:'taurine',name:'Taurine'},
+      {id:'l_tryptophan',name:'L-Tryptophan'},{id:'gaba',name:'GABA'},
+      {id:'passion_flower',name:'Passion Flower'}
+    ]
+  },
+  {
+    id:'pm1130_peptides', label:'11:30pm Peptides', time:'11:30 PM', icon:'\u{1F489}',
+    type:'dose',
+    items:[
+      {id:'selank',name:'Selank',unit:'sprays'},
+      {id:'dsip',name:'DSIP',unit:'units'},
+      {id:'kpv_bpc',name:'KPV + BPC',unit:'units'},
+      {id:'ghk_cu',name:'GHK-Cu',unit:'units',optional:true}
+    ]
+  },
+  {
+    id:'valium', label:'Valium', time:'As Needed', icon:'\u2695',
+    type:'dose',
+    items:[{id:'valium',name:'Valium',unit:'mg'}]
+  }
+];
+
+const OURA_FIELDS = [
+  {section:'Sleep Scores',fields:[
+    {id:'sleepScore',label:'Sleep Score'},
+    {id:'efficiency',label:'Sleep Efficiency %'}
+  ]},
+  {section:'Heart Rate',fields:[
+    {id:'restingHR',label:'Resting HR'},
+    {id:'avgHR',label:'Average HR'}
+  ]},
+  {section:'HRV',fields:[
+    {id:'hrvAvg',label:'HRV Average'},
+    {id:'hrvMax',label:'HRV Max'}
+  ]},
+  {section:'Sleep Stages',fields:[
+    {id:'deepSleepHrs',label:'Deep Sleep (hrs)'},
+    {id:'deepSleepPct',label:'Deep Sleep %'},
+    {id:'remSleepHrs',label:'REM Sleep (hrs)'},
+    {id:'remSleepPct',label:'REM Sleep %'},
+    {id:'lightSleepHrs',label:'Light Sleep (hrs)'},
+    {id:'lightSleepPct',label:'Light Sleep %'}
+  ]},
+  {section:'Timing',fields:[
+    {id:'totalSleep',label:'Total Sleep Time'},
+    {id:'sleepDebt',label:'Sleep Debt'},
+    {id:'awakeTime',label:'Awake Time'},
+    {id:'latency',label:'Latency'}
+  ]}
+];
+
+// ===== STATE =====
+let currentDate = new Date();
+let data = {};
+let trendsPeriod = 14;
+let chartInstances = {};
+
+// ===== DATE HELPERS =====
+function dateKey(d){
+  const dt = d || currentDate;
+  return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+}
+function formatDate(d){
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  return `<span class="day">${days[d.getDay()]}</span>, ${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+}
+function isToday(d){
+  const t=new Date();
+  return d.getDate()===t.getDate()&&d.getMonth()===t.getMonth()&&d.getFullYear()===t.getFullYear();
+}
+function changeDate(offset){
+  currentDate.setDate(currentDate.getDate()+offset);
+  loadCurrentDay();
+  renderAll();
+}
+
+// ===== DATA =====
+function getDefault(){
+  const d={protocol:{},oura:{},notes:{energy:5,sleepQuality:5,mood:'',armSymptoms:false,armNotes:'',gutStatus:'',general:''},ouraScreenshots:[]};
+  PROTOCOL.forEach(g=>{
+    d.protocol[g.id]={};
+    g.items.forEach(it=>{d.protocol[g.id][it.id]=g.type==='check'?false:''});
+  });
+  OURA_FIELDS.forEach(s=>s.fields.forEach(f=>{d.oura[f.id]=''}));
+  return d;
+}
+function loadCurrentDay(){
+  const key='health-'+dateKey();
+  const stored=localStorage.getItem(key);
+  if(stored){
+    data=JSON.parse(stored);
+    // Merge with defaults for any new fields
+    const def=getDefault();
+    if(!data.protocol)data.protocol=def.protocol;
+    if(!data.oura)data.oura=def.oura;
+    if(!data.notes)data.notes=def.notes;
+    // Migrate single screenshot to array
+    if(data.ouraScreenshot&&!data.ouraScreenshots){data.ouraScreenshots=[data.ouraScreenshot];delete data.ouraScreenshot;}
+    if(!data.ouraScreenshots)data.ouraScreenshots=[];
+    PROTOCOL.forEach(g=>{
+      if(!data.protocol[g.id])data.protocol[g.id]={};
+      g.items.forEach(it=>{if(data.protocol[g.id][it.id]===undefined)data.protocol[g.id][it.id]=g.type==='check'?false:''});
+    });
+    OURA_FIELDS.forEach(s=>s.fields.forEach(f=>{if(data.oura[f.id]===undefined)data.oura[f.id]=''}));
+  } else {
+    data=getDefault();
+  }
+}
+function save(){
+  localStorage.setItem('health-'+dateKey(),JSON.stringify(data));
+}
+
+// ===== COMPLETION HELPERS =====
+function groupCompletion(g){
+  const gd=data.protocol[g.id];
+  if(g.type==='check'){
+    const total=g.items.length;
+    const done=g.items.filter(it=>gd[it.id]).length;
+    return {done,total};
+  } else {
+    const total=g.items.filter(it=>!it.optional).length;
+    const done=g.items.filter(it=>!it.optional&&gd[it.id]!=='').length;
+    return {done,total};
+  }
+}
+function totalCompletion(){
+  let done=0,total=0;
+  PROTOCOL.forEach(g=>{
+    const c=groupCompletion(g);
+    done+=c.done;total+=c.total;
+  });
+  return {done,total,pct:total?Math.round(done/total*100):0};
+}
+
+// ===== RENDER DASHBOARD =====
+function renderDashboard(){
+  const el=document.getElementById('tab-dashboard');
+  const comp=totalCompletion();
+  const circ=2*Math.PI*44;
+  const offset=circ*(1-comp.pct/100);
+
+  let groupBars='';
+  PROTOCOL.forEach(g=>{
+    const c=groupCompletion(g);
+    const pct=c.total?Math.round(c.done/c.total*100):0;
+    const cls=c.done===c.total&&c.total>0?'complete':'';
+    groupBars+=`<div class="dash-group-row">
+      <div class="dash-group-label">${g.icon} ${g.label.replace(/ (Pills|Powders|Peptides)/,'')}</div>
+      <div class="dash-group-bar"><div class="dash-group-fill" style="width:${pct}%"></div></div>
+      <div class="dash-group-count ${cls}">${c.done}/${c.total}</div>
+    </div>`;
+  });
+
+  const oura=data.oura;
+  const sv=(id,label)=>{
+    const v=oura[id];
+    return `<div class="stat-card">
+      <div class="stat-value ${v?'':'empty'}">${v||'--'}</div>
+      <div class="stat-label">${label}</div>
+    </div>`;
+  };
+
+  let screenshotHTML='';
+  if(data.ouraScreenshots&&data.ouraScreenshots.length){
+    screenshotHTML=`<div class="dash-screenshot">
+      <div class="dash-screenshot-label">Oura Screenshots (${data.ouraScreenshots.length})</div>
+      <div style="display:flex;gap:8px;overflow-x:auto">${data.ouraScreenshots.map(s=>`<img src="${s}" onclick="openModal(this.src)" alt="Oura" style="height:120px;width:auto;border-radius:8px;cursor:pointer;flex-shrink:0">`).join('')}</div>
+    </div>`;
+  }
+
+  el.innerHTML=`
+    <div class="dash-grid">
+      <div class="dash-progress">
+        <div class="progress-ring-wrap">
+          <svg viewBox="0 0 100 100">
+            <circle class="ring-bg" cx="50" cy="50" r="44"/>
+            <circle class="ring-fill" cx="50" cy="50" r="44"
+              stroke-dasharray="${circ}" stroke-dashoffset="${offset}"/>
+          </svg>
+          <div class="ring-text">
+            <div class="ring-pct">${comp.pct}%</div>
+            <div class="ring-label">Protocol</div>
+          </div>
+        </div>
+        <div class="dash-progress-details">${groupBars}</div>
+      </div>
+      ${sv('sleepScore','Sleep Score')}
+      ${sv('hrvAvg','HRV Avg')}
+      ${sv('restingHR','Resting HR')}
+      ${sv('totalSleep','Total Sleep')}
+      ${screenshotHTML}
+    </div>`;
+}
+
+// ===== RENDER PROTOCOL =====
+function renderProtocol(){
+  const el=document.getElementById('tab-protocol');
+  let html='';
+
+  PROTOCOL.forEach(g=>{
+    const c=groupCompletion(g);
+    const cls=c.done===c.total&&c.total>0?'complete':'';
+    let itemsHTML='';
+
+    if(g.type==='check'){
+      g.items.forEach(it=>{
+        const checked=data.protocol[g.id][it.id];
+        const qty=it.qty?`<span class="pill-qty">${it.qty}</span>`:'';
+        itemsHTML+=`<div class="pill-chip ${checked?'checked':''}" onclick="toggleProtocol('${g.id}','${it.id}')">
+          <div class="check">${checked?'\u2713':''}</div>${it.name}${qty}
+        </div>`;
+      });
+    } else {
+      g.items.forEach(it=>{
+        const val=data.protocol[g.id][it.id];
+        const opt=it.optional?'<span class="optional"> (opt)</span>':'';
+        itemsHTML+=`<div class="dose-row">
+          <div class="dose-name">${it.name}${opt}</div>
+          <input class="dose-input" type="number" min="0" value="${val}"
+            placeholder="0" onchange="setDose('${g.id}','${it.id}',this.value)">
+          <span class="dose-unit">${it.unit}</span>
+        </div>`;
+      });
+    }
+
+    const allDone=c.done===c.total&&c.total>0;
+    const takeAllBtn=g.type==='check'?
+      `<button class="take-all-btn ${allDone?'all-done':''}" onclick="event.stopPropagation();takeAll('${g.id}')">${allDone?'\u2713 Done':'Take All'}</button>`:'';
+
+    html+=`<div class="protocol-section">
+      <div class="protocol-header" onclick="toggleSection(this)">
+        <div class="protocol-header-left">
+          <span class="protocol-icon">${g.icon}</span>
+          <span class="protocol-title">${g.label}</span>
+          <span class="protocol-time">${g.time}</span>
+        </div>
+        <div class="protocol-header-right">
+          ${takeAllBtn}
+          <span class="protocol-count ${cls}">${c.done}/${c.total}</span>
+        </div>
+      </div>
+      <div class="protocol-items">${itemsHTML}</div>
+    </div>`;
+  });
+
+  el.innerHTML=html;
+}
+
+function toggleProtocol(gid,iid){
+  data.protocol[gid][iid]=!data.protocol[gid][iid];
+  save();renderProtocol();renderDashboard();
+}
+function setDose(gid,iid,val){
+  data.protocol[gid][iid]=val;
+  save();renderProtocol();renderDashboard();
+}
+function toggleSection(header){
+  const items=header.nextElementSibling;
+  items.classList.toggle('collapsed');
+}
+function takeAll(gid){
+  const g=PROTOCOL.find(p=>p.id===gid);
+  if(!g||g.type!=='check')return;
+  const allDone=g.items.every(it=>data.protocol[gid][it.id]);
+  g.items.forEach(it=>{data.protocol[gid][it.id]=!allDone;});
+  save();renderProtocol();renderDashboard();
+}
+
+// ===== RENDER OURA =====
+function renderOura(){
+  const el=document.getElementById('tab-oura');
+  let html='';
+  const shots=data.ouraScreenshots||[];
+  const hasKey=!!localStorage.getItem('anthropic-key');
+
+  // Upload zone (always visible so you can always add more)
+  html+=`<div class="oura-upload" id="ouraUpload"
+    onclick="document.getElementById('ouraFile').click()"
+    ondragover="event.preventDefault();this.classList.add('drag-over')"
+    ondragleave="this.classList.remove('drag-over')"
+    ondrop="event.preventDefault();this.classList.remove('drag-over');handleDrop(event)">
+    <div class="oura-upload-icon">\u{1F4F7}</div>
+    <div class="oura-upload-text">${shots.length?'Add more screenshots \u2014 or ':''}Drop Oura screenshots here or <span>browse</span></div>
+    <input type="file" id="ouraFile" accept="image/*" multiple onchange="handleFileSelect(event)">
+  </div>`;
+
+  // Screenshot gallery
+  if(shots.length){
+    html+=`<div class="oura-gallery">`;
+    shots.forEach((src,i)=>{
+      html+=`<div class="oura-thumb">
+        <img src="${src}" onclick="openModal(this.src)" alt="Oura ${i+1}">
+        <button class="oura-thumb-remove" onclick="event.stopPropagation();removeScreenshot(${i})">\u00d7</button>
+      </div>`;
+    });
+    html+=`</div>`;
+
+    // Extract bar
+    html+=`<div class="oura-extract-bar">
+      <button class="oura-extract-btn" onclick="extractOuraData()" ${hasKey?'':'disabled'} id="extractBtn">
+        \u2728 Extract Data
+      </button>
+      <div class="oura-extract-status" id="extractStatus">
+        ${hasKey?shots.length+' screenshot'+(shots.length>1?'s':'')+' ready':'API key required to auto-extract'}
+      </div>
+      <span class="oura-settings-link" onclick="openSettings()">${hasKey?'Settings':'Add API Key'}</span>
+    </div>`;
+  }
+
+  // Metric fields
+  OURA_FIELDS.forEach(section=>{
+    html+=`<div class="oura-section-title">${section.section}</div><div class="oura-grid">`;
+    section.fields.forEach(f=>{
+      html+=`<div class="oura-field">
+        <div class="oura-field-label">${f.label}</div>
+        <input type="text" value="${data.oura[f.id]||''}" placeholder="--"
+          onchange="setOura('${f.id}',this.value)" inputmode="decimal">
+      </div>`;
+    });
+    html+=`</div>`;
+  });
+
+  el.innerHTML=html;
+}
+
+function setOura(id,val){data.oura[id]=val;save();renderDashboard();}
+
+function handleFileSelect(e){
+  if(e.target.files)Array.from(e.target.files).forEach(f=>processImage(f));
+}
+function handleDrop(e){
+  if(e.dataTransfer.files)Array.from(e.dataTransfer.files).forEach(f=>processImage(f));
+}
+function processImage(file){
+  if(!file.type.startsWith('image/'))return;
+  const canvas=document.createElement('canvas');
+  const ctx=canvas.getContext('2d');
+  const img=new Image();
+  img.onload=function(){
+    const maxW=800;
+    let w=img.width,h=img.height;
+    if(w>maxW){h=h*(maxW/w);w=maxW;}
+    canvas.width=w;canvas.height=h;
+    ctx.drawImage(img,0,0,w,h);
+    if(!data.ouraScreenshots)data.ouraScreenshots=[];
+    data.ouraScreenshots.push(canvas.toDataURL('image/jpeg',0.7));
+    save();renderOura();renderDashboard();
+  };
+  img.src=URL.createObjectURL(file);
+}
+function removeScreenshot(idx){
+  data.ouraScreenshots.splice(idx,1);
+  save();renderOura();renderDashboard();
+}
+function openModal(src){
+  document.getElementById('modalImg').src=src;
+  document.getElementById('screenshotModal').classList.add('visible');
+}
+
+// ===== SETTINGS =====
+function openSettings(){
+  const overlay=document.getElementById('settingsOverlay');
+  const input=document.getElementById('apiKeyInput');
+  input.value=localStorage.getItem('anthropic-key')||'';
+  overlay.classList.add('visible');
+}
+function closeSettings(){document.getElementById('settingsOverlay').classList.remove('visible')}
+function saveApiKey(){
+  const key=document.getElementById('apiKeyInput').value.trim();
+  if(key)localStorage.setItem('anthropic-key',key);
+  else localStorage.removeItem('anthropic-key');
+  closeSettings();renderOura();
+}
+
+// ===== CLAUDE VISION EXTRACTION =====
+async function extractOuraData(){
+  const apiKey=localStorage.getItem('anthropic-key');
+  if(!apiKey){openSettings();return;}
+  const shots=data.ouraScreenshots||[];
+  if(!shots.length)return;
+
+  const btn=document.getElementById('extractBtn');
+  const status=document.getElementById('extractStatus');
+  btn.disabled=true;btn.textContent='Extracting...';
+  status.textContent='Sending '+shots.length+' screenshot'+(shots.length>1?'s':'')+' to Claude...';
+  status.className='oura-extract-status';
+
+  // Build image content blocks
+  const content=[];
+  shots.forEach((src,i)=>{
+    const base64=src.split(',')[1];
+    const mimeMatch=src.match(/data:(image\/[^;]+);/);
+    const mediaType=mimeMatch?mimeMatch[1]:'image/jpeg';
+    content.push({type:'image',source:{type:'base64',media_type:mediaType,data:base64}});
+  });
+  content.push({type:'text',text:`Extract all Oura ring/sleep metrics visible in these screenshot(s). Return ONLY a JSON object with these exact keys where values are visible: sleepScore, restingHR, avgHR, hrvAvg, hrvMax, deepSleepHrs, deepSleepPct, remSleepHrs, remSleepPct, lightSleepHrs, lightSleepPct, totalSleep, efficiency, sleepDebt, awakeTime, latency. All values as strings. For time durations use format like "7h 23m". For percentages just the number. Only include fields clearly readable in the screenshots. Return ONLY valid JSON, no markdown, no explanation.`});
+
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':apiKey,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-haiku-4-5-20251001',
+        max_tokens:1024,
+        messages:[{role:'user',content}]
+      })
+    });
+
+    if(!resp.ok){
+      const err=await resp.json().catch(()=>({}));
+      throw new Error(err.error?.message||'API error '+resp.status);
+    }
+
+    const result=await resp.json();
+    const text=result.content[0].text.trim();
+
+    // Parse JSON from response (handle possible markdown wrapping)
+    let jsonStr=text;
+    const jsonMatch=text.match(/\{[\s\S]*\}/);
+    if(jsonMatch)jsonStr=jsonMatch[0];
+
+    const extracted=JSON.parse(jsonStr);
+    let filled=0;
+    Object.entries(extracted).forEach(([key,val])=>{
+      if(val&&data.oura.hasOwnProperty(key)){
+        data.oura[key]=String(val);
+        filled++;
+      }
+    });
+
+    save();renderOura();renderDashboard();
+
+    // Re-grab status after re-render
+    const newStatus=document.getElementById('extractStatus');
+    if(newStatus){
+      newStatus.textContent='\u2713 Extracted '+filled+' metric'+(filled!==1?'s':'')+' from screenshots';
+      newStatus.className='oura-extract-status success';
+    }
+  } catch(e){
+    let msg=e.message;
+    if(e.message==='Failed to fetch'||e.name==='TypeError'){
+      msg='Network error \u2014 this feature requires HTTPS hosting (not file://). Host on GitHub Pages or a web server.';
+    }
+    status.textContent='Error: '+msg;
+    status.className='oura-extract-status error';
+    btn.disabled=false;btn.textContent='\u2728 Extract Data';
+  }
+}
+
+// ===== RENDER JOURNAL =====
+function renderJournal(){
+  const el=document.getElementById('tab-journal');
+  const n=data.notes;
+
+  el.innerHTML=`
+    <div class="journal-row">
+      <div class="journal-section">
+        <div class="journal-label">Energy Level</div>
+        <div class="slider-wrap">
+          <input class="slider" type="range" min="1" max="10" value="${n.energy}"
+            oninput="this.previousElementSibling&&0;this.nextElementSibling.textContent=this.value;setNote('energy',+this.value)">
+          <div class="slider-value">${n.energy}</div>
+        </div>
+      </div>
+      <div class="journal-section">
+        <div class="journal-label">Sleep Quality (subjective)</div>
+        <div class="slider-wrap">
+          <input class="slider" type="range" min="1" max="10" value="${n.sleepQuality}"
+            oninput="this.nextElementSibling.textContent=this.value;setNote('sleepQuality',+this.value)">
+          <div class="slider-value">${n.sleepQuality}</div>
+        </div>
+      </div>
+    </div>
+    <div class="journal-section">
+      <div class="journal-label">Mood</div>
+      <input class="journal-input" type="text" value="${escHTML(n.mood)}" placeholder="How are you feeling today?"
+        onchange="setNote('mood',this.value)">
+    </div>
+    <div class="journal-section">
+      <div class="journal-label">Arm Symptoms</div>
+      <div class="toggle-wrap" style="margin-bottom:10px">
+        <button class="toggle ${n.armSymptoms?'on':''}" onclick="toggleArm(this)"></button>
+        <span class="toggle-label">${n.armSymptoms?'Yes':'No'}</span>
+      </div>
+      ${n.armSymptoms?`<input class="journal-input" type="text" value="${escHTML(n.armNotes)}" placeholder="Describe symptoms..."
+        onchange="setNote('armNotes',this.value)">`:''}
+    </div>
+    <div class="journal-section">
+      <div class="journal-label">Gut Status</div>
+      <input class="journal-input" type="text" value="${escHTML(n.gutStatus)}" placeholder="How's your gut today?"
+        onchange="setNote('gutStatus',this.value)">
+    </div>
+    <div class="journal-section">
+      <div class="journal-label">General Notes</div>
+      <textarea class="journal-input" placeholder="Anything else to note..."
+        onchange="setNote('general',this.value)">${escHTML(n.general)}</textarea>
+    </div>`;
+}
+
+function setNote(key,val){data.notes[key]=val;save();}
+function toggleArm(btn){
+  data.notes.armSymptoms=!data.notes.armSymptoms;
+  save();renderJournal();
+}
+function escHTML(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ===== RENDER TRENDS =====
+function renderTrends(){
+  const el=document.getElementById('tab-trends');
+
+  let periodBtns='';
+  [7,14,30,90].forEach(d=>{
+    periodBtns+=`<button class="trends-period-btn ${d===trendsPeriod?'active':''}" onclick="trendsPeriod=${d};renderTrends()">${d}d</button>`;
+  });
+
+  // Gather historical data
+  const entries=[];
+  const now=new Date();
+  for(let i=trendsPeriod-1;i>=0;i--){
+    const d=new Date(now);
+    d.setDate(d.getDate()-i);
+    const key='health-'+dateKey(d);
+    const stored=localStorage.getItem(key);
+    const label=(d.getMonth()+1)+'/'+d.getDate();
+    if(stored){
+      const entry=JSON.parse(stored);
+      entries.push({date:d,label,data:entry});
+    } else {
+      entries.push({date:d,label,data:null});
+    }
+  }
+
+  // History list (recent entries with data)
+  let historyHTML='';
+  const withData=entries.filter(e=>e.data).reverse().slice(0,15);
+  withData.forEach(e=>{
+    const ed=e.data;
+    const comp=calcCompFromData(ed);
+    const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const dateStr=months[e.date.getMonth()]+' '+e.date.getDate();
+    const ss=ed.oura&&ed.oura.sleepScore?ed.oura.sleepScore:'--';
+    const hrv=ed.oura&&ed.oura.hrvAvg?ed.oura.hrvAvg:'--';
+    const en=ed.notes?ed.notes.energy:'--';
+
+    // Protocol completion dots (one per group)
+    let dots='';
+    PROTOCOL.forEach(g=>{
+      if(!ed.protocol||!ed.protocol[g.id])dots+=`<div class="history-dot"></div>`;
+      else {
+        const gc=groupCompFromData(g,ed);
+        dots+=`<div class="history-dot ${gc.done===gc.total&&gc.total>0?'filled':''}"></div>`;
+      }
+    });
+
+    historyHTML+=`<div class="history-entry" onclick="jumpToDate('${dateKey(e.date)}')">
+      <div class="history-date">${dateStr}</div>
+      <div class="history-stats">
+        <div class="history-stat">Sleep <span>${ss}</span></div>
+        <div class="history-stat">HRV <span>${hrv}</span></div>
+        <div class="history-stat">Energy <span>${en}</span></div>
+        <div class="history-stat">Protocol <span>${comp}%</span></div>
+      </div>
+      <div class="history-dots">${dots}</div>
+    </div>`;
+  });
+
+  el.innerHTML=`
+    <div class="trends-period">${periodBtns}</div>
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-title">Sleep Score</div>
+        <div class="chart-wrap"><canvas id="chartSleep"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">HRV Average</div>
+        <div class="chart-wrap"><canvas id="chartHRV"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Resting HR</div>
+        <div class="chart-wrap"><canvas id="chartHR"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Protocol Completion</div>
+        <div class="chart-wrap"><canvas id="chartProtocol"></canvas></div>
+      </div>
+    </div>
+    <div class="oura-section-title">History</div>
+    <div class="history-list">${historyHTML||'<div style="text-align:center;color:var(--text-muted);padding:20px;font-size:0.85rem">No entries yet. Start tracking to see your history.</div>'}</div>`;
+
+  // Build charts
+  setTimeout(()=>buildCharts(entries),50);
+}
+
+function calcCompFromData(d){
+  if(!d||!d.protocol)return 0;
+  let done=0,total=0;
+  PROTOCOL.forEach(g=>{
+    const gc=groupCompFromData(g,d);
+    done+=gc.done;total+=gc.total;
+  });
+  return total?Math.round(done/total*100):0;
+}
+function groupCompFromData(g,d){
+  const gd=d.protocol[g.id]||{};
+  if(g.type==='check'){
+    const total=g.items.length;
+    const done=g.items.filter(it=>gd[it.id]).length;
+    return {done,total};
+  } else {
+    const total=g.items.filter(it=>!it.optional).length;
+    const done=g.items.filter(it=>!it.optional&&gd[it.id]!=='').length;
+    return {done,total};
+  }
+}
+function jumpToDate(key){
+  const parts=key.split('-');
+  currentDate=new Date(+parts[0],+parts[1]-1,+parts[2]);
+  loadCurrentDay();renderAll();
+  switchTab('dashboard');
+}
+
+function buildCharts(entries){
+  Object.values(chartInstances).forEach(c=>{if(c)c.destroy()});
+  chartInstances={};
+
+  const labels=entries.map(e=>e.label);
+  const chartOpts=(color)=>({
+    responsive:true,
+    maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{grid:{color:'#222'},ticks:{color:'#555',font:{size:9},maxTicksLimit:8}},
+      y:{grid:{color:'#1e1e1e'},ticks:{color:'#555',font:{size:9},maxTicksLimit:5}}
+    },
+    elements:{point:{radius:2,hoverRadius:5}},
+    interaction:{mode:'nearest',intersect:false}
+  });
+
+  function makeDataset(entries,field,color){
+    return entries.map(e=>{
+      if(!e.data||!e.data.oura||!e.data.oura[field])return null;
+      const v=parseFloat(e.data.oura[field]);
+      return isNaN(v)?null:v;
+    });
+  }
+
+  const sleepData=makeDataset(entries,'sleepScore');
+  const hrvData=makeDataset(entries,'hrvAvg');
+  const hrData=makeDataset(entries,'restingHR');
+  const protData=entries.map(e=>e.data?calcCompFromData(e.data):null);
+
+  const mkChart=(id,dataArr,color,type)=>{
+    const ctx=document.getElementById(id);
+    if(!ctx)return;
+    chartInstances[id]=new Chart(ctx,{
+      type:type||'line',
+      data:{labels,datasets:[{
+        data:dataArr,
+        borderColor:color,
+        backgroundColor:type==='bar'?color+'33':color+'18',
+        borderWidth:2,tension:0.3,
+        fill:type!=='bar',
+        spanGaps:true
+      }]},
+      options:chartOpts(color)
+    });
+  };
+
+  mkChart('chartSleep',sleepData,'#c9b99a');
+  mkChart('chartHRV',hrvData,'#6ecf8a');
+  mkChart('chartHR',hrData,'#e88a7d');
+  mkChart('chartProtocol',protData,'#c9b99a','bar');
+}
+
+// ===== TABS =====
+function switchTab(tabId){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tabId));
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.toggle('active',t.id==='tab-'+tabId));
+  if(tabId==='trends')renderTrends();
+}
+document.getElementById('tabs').addEventListener('click',e=>{
+  if(e.target.classList.contains('tab'))switchTab(e.target.dataset.tab);
+});
+
+// ===== COPY FOR CLAUDE =====
+function copyForClaude(){
+  const days=7;
+  const lines=[];
+  lines.push('## Health Protocol Summary');
+  lines.push('');
+
+  const now=new Date();
+  for(let i=0;i<days;i++){
+    const d=new Date(now);
+    d.setDate(d.getDate()-i);
+    const key='health-'+dateKey(d);
+    const stored=localStorage.getItem(key);
+    if(!stored)continue;
+
+    const entry=JSON.parse(stored);
+    const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const dateStr=dayNames[d.getDay()]+' '+months[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear();
+    lines.push('### '+dateStr);
+
+    // Protocol
+    const comp=calcCompFromData(entry);
+    lines.push('**Protocol: '+comp+'% complete**');
+    PROTOCOL.forEach(g=>{
+      if(g.type==='check'&&entry.protocol&&entry.protocol[g.id]){
+        const gd=entry.protocol[g.id];
+        const taken=g.items.filter(it=>gd[it.id]).map(it=>it.name);
+        const missed=g.items.filter(it=>!gd[it.id]).map(it=>it.name);
+        if(taken.length===g.items.length){
+          lines.push('- '+g.icon+' '+g.label+': All taken \u2713');
+        } else if(taken.length>0){
+          lines.push('- '+g.icon+' '+g.label+': '+taken.join(', ')+' | Missed: '+missed.join(', '));
+        } else {
+          lines.push('- '+g.icon+' '+g.label+': None taken');
+        }
+      } else if(g.type==='dose'&&entry.protocol&&entry.protocol[g.id]){
+        const gd=entry.protocol[g.id];
+        const doses=g.items.filter(it=>gd[it.id]!=='').map(it=>it.name+': '+gd[it.id]+' '+it.unit);
+        if(doses.length) lines.push('- '+g.icon+' '+g.label+': '+doses.join(', '));
+      }
+    });
+
+    // Oura
+    if(entry.oura){
+      const o=entry.oura;
+      const metrics=[];
+      if(o.sleepScore)metrics.push('Sleep Score: '+o.sleepScore);
+      if(o.hrvAvg)metrics.push('HRV Avg: '+o.hrvAvg);
+      if(o.hrvMax)metrics.push('HRV Max: '+o.hrvMax);
+      if(o.restingHR)metrics.push('Resting HR: '+o.restingHR);
+      if(o.totalSleep)metrics.push('Total Sleep: '+o.totalSleep);
+      if(o.deepSleepHrs||o.deepSleepPct)metrics.push('Deep: '+(o.deepSleepHrs||'?')+'h ('+(o.deepSleepPct||'?')+'%)');
+      if(o.remSleepHrs||o.remSleepPct)metrics.push('REM: '+(o.remSleepHrs||'?')+'h ('+(o.remSleepPct||'?')+'%)');
+      if(o.efficiency)metrics.push('Efficiency: '+o.efficiency+'%');
+      if(o.latency)metrics.push('Latency: '+o.latency);
+      if(metrics.length){lines.push('**Oura:** '+metrics.join(' | '));}
+    }
+
+    // Notes
+    if(entry.notes){
+      const n=entry.notes;
+      const bits=[];
+      if(n.energy)bits.push('Energy: '+n.energy+'/10');
+      if(n.sleepQuality)bits.push('Sleep Quality: '+n.sleepQuality+'/10');
+      if(n.mood)bits.push('Mood: '+n.mood);
+      if(n.armSymptoms)bits.push('Arm symptoms: '+(n.armNotes||'yes'));
+      if(n.gutStatus)bits.push('Gut: '+n.gutStatus);
+      if(bits.length)lines.push('**Journal:** '+bits.join(' | '));
+      if(n.general)lines.push('> '+n.general.replace(/\n/g,'\n> '));
+    }
+    lines.push('');
+  }
+
+  if(lines.length<=2){
+    lines.push('No data recorded in the last '+days+' days.');
+  }
+
+  const text=lines.join('\n');
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn=document.getElementById('copyBtn');
+    btn.textContent='\u2713 Copied!';
+    btn.style.borderColor='var(--accent)';
+    btn.style.color='var(--accent)';
+    setTimeout(()=>{btn.textContent='Copy for Claude';btn.style.borderColor='';btn.style.color='';},2000);
+  });
+}
+
+// ===== CSV EXPORT =====
+function exportCSV(){
+  const allKeys=[];
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(k.startsWith('health-'))allKeys.push(k);
+  }
+  allKeys.sort();
+  if(!allKeys.length){alert('No data to export.');return;}
+
+  // Build headers
+  const headers=['Date'];
+  PROTOCOL.forEach(g=>g.items.forEach(it=>headers.push(g.label+': '+it.name)));
+  OURA_FIELDS.forEach(s=>s.fields.forEach(f=>headers.push('Oura: '+f.label)));
+  headers.push('Energy','Sleep Quality','Mood','Arm Symptoms','Arm Notes','Gut Status','General Notes');
+
+  const rows=[headers.join(',')];
+
+  allKeys.forEach(key=>{
+    const d=JSON.parse(localStorage.getItem(key));
+    const row=[key.replace('health-','')];
+    PROTOCOL.forEach(g=>{
+      g.items.forEach(it=>{
+        const val=d.protocol&&d.protocol[g.id]?d.protocol[g.id][it.id]:'';
+        row.push(typeof val==='boolean'?(val?'Yes':'No'):val);
+      });
+    });
+    OURA_FIELDS.forEach(s=>s.fields.forEach(f=>{
+      row.push(d.oura?d.oura[f.id]||'':'');
+    }));
+    const n=d.notes||{};
+    row.push(n.energy||'',n.sleepQuality||'','"'+(n.mood||'').replace(/"/g,'""')+'"',
+      n.armSymptoms?'Yes':'No','"'+(n.armNotes||'').replace(/"/g,'""')+'"',
+      '"'+(n.gutStatus||'').replace(/"/g,'""')+'"','"'+(n.general||'').replace(/"/g,'""')+'"');
+    rows.push(row.join(','));
+  });
+
+  const blob=new Blob([rows.join('\n')],{type:'text/csv'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='health-protocol-export.csv';
+  a.click();
+}
+
+// ===== RENDER ALL =====
+function renderAll(){
+  // Date display
+  const dd=document.getElementById('dateDisplay');
+  dd.innerHTML=formatDate(currentDate)+(isToday(currentDate)?'<span class="today-badge">Today</span>':'');
+
+  renderDashboard();
+  renderProtocol();
+  renderOura();
+  renderJournal();
+  // Trends rendered on-demand when tab opens
+  if(document.getElementById('tab-trends').classList.contains('active'))renderTrends();
+}
+
+// ===== INIT =====
+loadCurrentDay();
+renderAll();
+</script>
+
+</body>
+</html>
