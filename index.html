@@ -678,25 +678,22 @@ textarea.journal-input{min-height:80px;line-height:1.6}
   <!-- TABS -->
   <div class="tabs" id="tabs">
     <button class="tab active" data-tab="dashboard">Dashboard</button>
-    <button class="tab" data-tab="protocol">Protocol</button>
-    <button class="tab" data-tab="oura">Oura</button>
-    <button class="tab" data-tab="journal">Journal</button>
+    <button class="tab" data-tab="sleep">Sleep</button>
+    <button class="tab" data-tab="morning">Morning</button>
+    <button class="tab" data-tab="food">Food</button>
+    <button class="tab" data-tab="pm9">9pm</button>
+    <button class="tab" data-tab="pm1130">11:30pm</button>
+    <button class="tab" data-tab="bedtime">Bedtime</button>
     <button class="tab" data-tab="trends">Trends</button>
   </div>
 
-  <!-- ===== DASHBOARD ===== -->
   <div class="tab-content active" id="tab-dashboard"></div>
-
-  <!-- ===== PROTOCOL ===== -->
-  <div class="tab-content" id="tab-protocol"></div>
-
-  <!-- ===== OURA ===== -->
-  <div class="tab-content" id="tab-oura"></div>
-
-  <!-- ===== JOURNAL ===== -->
-  <div class="tab-content" id="tab-journal"></div>
-
-  <!-- ===== TRENDS ===== -->
+  <div class="tab-content" id="tab-sleep"></div>
+  <div class="tab-content" id="tab-morning"></div>
+  <div class="tab-content" id="tab-food"></div>
+  <div class="tab-content" id="tab-pm9"></div>
+  <div class="tab-content" id="tab-pm1130"></div>
+  <div class="tab-content" id="tab-bedtime"></div>
   <div class="tab-content" id="tab-trends"></div>
 
 </div>
@@ -724,8 +721,8 @@ textarea.journal-input{min-height:80px;line-height:1.6}
 // ===== PROTOCOL DEFINITION =====
 const PROTOCOL = [
   {
-    id:'morning', label:'Morning', time:'Morning', icon:'\u2600',
-    type:'check',
+    id:'morning', label:'Morning Pills', time:'Morning', icon:'\u2600',
+    tab:'morning', type:'check',
     items:[
       {id:'nac',name:'NAC'},{id:'l_lysine',name:'L-Lysine'},
       {id:'lithium',name:'Lithium'},{id:'zinc',name:'Zinc'},
@@ -733,31 +730,31 @@ const PROTOCOL = [
     ]
   },
   {
-    id:'pm9', label:'9pm', time:'9:00 PM', icon:'\u{1F319}',
-    type:'check',
+    id:'pm9', label:'9pm Pills & Powders', time:'9:00 PM', icon:'\u{1F319}',
+    tab:'pm9', type:'check',
     items:[
       {id:'melatonin',name:'Melatonin'},
       {id:'mag_bis',name:'Mag Bisglycinate',qty:'\u00d72'},
       {id:'ps',name:'Phosphatidylserine',qty:'\u00d73'},
       {id:'mag_threonate_9',name:'Mag L-Threonate',qty:'\u00d72'},
-      {id:'l_theanine',name:'L-Theanine'},
-      {id:'inositol',name:'Inositol'}
+      {id:'l_theanine',name:'L-Theanine (200-400mg)'},
+      {id:'inositol',name:'Inositol (2-4g)'}
     ]
   },
   {
-    id:'pm1130', label:'11:30pm', time:'11:30 PM', icon:'\u{1F4A4}',
-    type:'check',
+    id:'pm1130', label:'11:30pm Pills & Powders', time:'11:30 PM', icon:'\u{1F4A4}',
+    tab:'pm1130', type:'check',
     items:[
-      {id:'apigenin',name:'Apigenin'},
+      {id:'apigenin',name:'Apigenin (50mg)'},
       {id:'mag_threonate_11',name:'Mag L-Threonate',qty:'\u00d71'},
-      {id:'glycine',name:'Glycine'},{id:'taurine',name:'Taurine'},
-      {id:'l_tryptophan',name:'L-Tryptophan'},{id:'gaba',name:'GABA'},
-      {id:'passion_flower',name:'Passion Flower'}
+      {id:'glycine',name:'Glycine (3000mg)'},{id:'taurine',name:'Taurine (500-1000mg)'},
+      {id:'l_tryptophan',name:'L-Tryptophan (500-1000mg)'},{id:'gaba',name:'GABA (500-750mg)'},
+      {id:'passion_flower',name:'Passion Flower (250-500mg)'}
     ]
   },
   {
-    id:'pm1130_peptides', label:'11:30pm Peptides', time:'11:30 PM', icon:'\u{1F489}',
-    type:'dose',
+    id:'pm1130_peptides', label:'Peptides', time:'11:30 PM', icon:'\u{1F489}',
+    tab:'pm1130', type:'dose',
     items:[
       {id:'selank',name:'Selank',unit:'sprays'},
       {id:'dsip',name:'DSIP',unit:'units'},
@@ -767,9 +764,31 @@ const PROTOCOL = [
   },
   {
     id:'valium', label:'Valium', time:'As Needed', icon:'\u2695',
-    type:'dose',
+    tab:'pm1130', type:'dose',
     items:[{id:'valium',name:'Valium',unit:'mg'}]
   }
+];
+
+const FOOD_ITEMS = [
+  {id:'latte',name:'Protein Latte',icon:'\u2615'},
+  {id:'protein_shake',name:'Protein Shake',icon:'\u{1F964}'},
+  {id:'toast',name:'Toast',icon:'\u{1F35E}'},
+  {id:'eggs',name:'Eggs',icon:'\u{1F373}'},
+  {id:'chicken',name:'Chicken',icon:'\u{1F357}'},
+  {id:'rice',name:'Rice',icon:'\u{1F35A}'},
+  {id:'salad',name:'Salad',icon:'\u{1F957}'},
+  {id:'fruit',name:'Fruit',icon:'\u{1F34E}'},
+  {id:'yogurt',name:'Yogurt',icon:'\u{1F95B}'},
+  {id:'soup',name:'Soup',icon:'\u{1F372}'},
+];
+
+const BEDTIME_ITEMS = [
+  {id:'blue_light',name:'Blue Light Glasses'},
+  {id:'phone_away',name:'Phone on Charge / Away'},
+  {id:'room_dark',name:'Room Dark & Cool'},
+  {id:'skincare',name:'Skincare Done'},
+  {id:'teeth',name:'Teeth Brushed'},
+  {id:'breathing',name:'Breathing / Wind Down'},
 ];
 
 const OURA_FIELDS = [
@@ -829,12 +848,14 @@ function changeDate(offset){
 
 // ===== DATA =====
 function getDefault(){
-  const d={protocol:{},oura:{},notes:{energy:5,sleepQuality:5,mood:'',armSymptoms:false,armNotes:'',gutStatus:'',general:''},ouraScreenshots:[]};
+  const d={protocol:{},oura:{},notes:{energy:5,sleepQuality:5,mood:'',anxiety:5,tiredness:5,gutStatus:'',general:''},food:{items:{},notes:''},bedtime:{items:{},notes:'',time:''},ouraScreenshots:[]};
   PROTOCOL.forEach(g=>{
     d.protocol[g.id]={};
     g.items.forEach(it=>{d.protocol[g.id][it.id]=g.type==='check'?false:''});
   });
   OURA_FIELDS.forEach(s=>s.fields.forEach(f=>{d.oura[f.id]=''}));
+  FOOD_ITEMS.forEach(it=>{d.food.items[it.id]=false});
+  BEDTIME_ITEMS.forEach(it=>{d.bedtime.items[it.id]=false});
   return d;
 }
 function loadCurrentDay(){
@@ -855,6 +876,16 @@ function loadCurrentDay(){
       g.items.forEach(it=>{if(data.protocol[g.id][it.id]===undefined)data.protocol[g.id][it.id]=g.type==='check'?false:''});
     });
     OURA_FIELDS.forEach(s=>s.fields.forEach(f=>{if(data.oura[f.id]===undefined)data.oura[f.id]=''}));
+    // Merge food & bedtime defaults
+    if(!data.food)data.food={items:{},notes:''};
+    if(!data.food.items)data.food.items={};
+    FOOD_ITEMS.forEach(it=>{if(data.food.items[it.id]===undefined)data.food.items[it.id]=false});
+    if(!data.bedtime)data.bedtime={items:{},notes:'',time:''};
+    if(!data.bedtime.items)data.bedtime.items={};
+    BEDTIME_ITEMS.forEach(it=>{if(data.bedtime.items[it.id]===undefined)data.bedtime.items[it.id]=false});
+    // Merge new note fields
+    if(data.notes.anxiety===undefined)data.notes.anxiety=5;
+    if(data.notes.tiredness===undefined)data.notes.tiredness=5;
   } else {
     data=getDefault();
   }
@@ -945,67 +976,66 @@ function renderDashboard(){
     </div>`;
 }
 
-// ===== RENDER PROTOCOL =====
-function renderProtocol(){
-  const el=document.getElementById('tab-protocol');
-  let html='';
+// ===== RENDER PROTOCOL GROUPS (shared helper) =====
+function renderProtocolGroup(g){
+  const c=groupCompletion(g);
+  const cls=c.done===c.total&&c.total>0?'complete':'';
+  let itemsHTML='';
 
-  PROTOCOL.forEach(g=>{
-    const c=groupCompletion(g);
-    const cls=c.done===c.total&&c.total>0?'complete':'';
-    let itemsHTML='';
+  if(g.type==='check'){
+    g.items.forEach(it=>{
+      const checked=data.protocol[g.id][it.id];
+      const qty=it.qty?`<span class="pill-qty">${it.qty}</span>`:'';
+      itemsHTML+=`<div class="pill-chip ${checked?'checked':''}" onclick="toggleProtocol('${g.id}','${it.id}')">
+        <div class="check">${checked?'\u2713':''}</div>${it.name}${qty}
+      </div>`;
+    });
+  } else {
+    g.items.forEach(it=>{
+      const val=data.protocol[g.id][it.id];
+      const opt=it.optional?'<span class="optional"> (opt)</span>':'';
+      itemsHTML+=`<div class="dose-row">
+        <div class="dose-name">${it.name}${opt}</div>
+        <input class="dose-input" type="number" min="0" value="${val}"
+          placeholder="0" onchange="setDose('${g.id}','${it.id}',this.value)">
+        <span class="dose-unit">${it.unit}</span>
+      </div>`;
+    });
+  }
 
-    if(g.type==='check'){
-      g.items.forEach(it=>{
-        const checked=data.protocol[g.id][it.id];
-        const qty=it.qty?`<span class="pill-qty">${it.qty}</span>`:'';
-        itemsHTML+=`<div class="pill-chip ${checked?'checked':''}" onclick="toggleProtocol('${g.id}','${it.id}')">
-          <div class="check">${checked?'\u2713':''}</div>${it.name}${qty}
-        </div>`;
-      });
-    } else {
-      g.items.forEach(it=>{
-        const val=data.protocol[g.id][it.id];
-        const opt=it.optional?'<span class="optional"> (opt)</span>':'';
-        itemsHTML+=`<div class="dose-row">
-          <div class="dose-name">${it.name}${opt}</div>
-          <input class="dose-input" type="number" min="0" value="${val}"
-            placeholder="0" onchange="setDose('${g.id}','${it.id}',this.value)">
-          <span class="dose-unit">${it.unit}</span>
-        </div>`;
-      });
-    }
+  const allDone=c.done===c.total&&c.total>0;
+  const takeAllBtn=g.type==='check'?
+    `<button class="take-all-btn ${allDone?'all-done':''}" onclick="event.stopPropagation();takeAll('${g.id}')">${allDone?'\u2713 Done':'Take All'}</button>`:'';
 
-    const allDone=c.done===c.total&&c.total>0;
-    const takeAllBtn=g.type==='check'?
-      `<button class="take-all-btn ${allDone?'all-done':''}" onclick="event.stopPropagation();takeAll('${g.id}')">${allDone?'\u2713 Done':'Take All'}</button>`:'';
-
-    html+=`<div class="protocol-section">
-      <div class="protocol-header" onclick="toggleSection(this)">
-        <div class="protocol-header-left">
-          <span class="protocol-icon">${g.icon}</span>
-          <span class="protocol-title">${g.label}</span>
-          <span class="protocol-time">${g.time}</span>
-        </div>
-        <div class="protocol-header-right">
-          ${takeAllBtn}
-          <span class="protocol-count ${cls}">${c.done}/${c.total}</span>
-        </div>
+  return `<div class="protocol-section">
+    <div class="protocol-header" onclick="toggleSection(this)">
+      <div class="protocol-header-left">
+        <span class="protocol-icon">${g.icon}</span>
+        <span class="protocol-title">${g.label}</span>
       </div>
-      <div class="protocol-items">${itemsHTML}</div>
-    </div>`;
-  });
-
-  el.innerHTML=html;
+      <div class="protocol-header-right">
+        ${takeAllBtn}
+        <span class="protocol-count ${cls}">${c.done}/${c.total}</span>
+      </div>
+    </div>
+    <div class="protocol-items">${itemsHTML}</div>
+  </div>`;
 }
+
+function renderProtocolTab(tabId){
+  const el=document.getElementById('tab-'+tabId);
+  el.innerHTML=PROTOCOL.filter(g=>g.tab===tabId).map(renderProtocolGroup).join('');
+}
+
+function renderAllProtocol(){['morning','pm9','pm1130'].forEach(renderProtocolTab);}
 
 function toggleProtocol(gid,iid){
   data.protocol[gid][iid]=!data.protocol[gid][iid];
-  save();renderProtocol();renderDashboard();
+  save();renderAllProtocol();renderDashboard();
 }
 function setDose(gid,iid,val){
   data.protocol[gid][iid]=val;
-  save();renderProtocol();renderDashboard();
+  save();renderAllProtocol();renderDashboard();
 }
 function toggleSection(header){
   const items=header.nextElementSibling;
@@ -1016,64 +1046,7 @@ function takeAll(gid){
   if(!g||g.type!=='check')return;
   const allDone=g.items.every(it=>data.protocol[gid][it.id]);
   g.items.forEach(it=>{data.protocol[gid][it.id]=!allDone;});
-  save();renderProtocol();renderDashboard();
-}
-
-// ===== RENDER OURA =====
-function renderOura(){
-  const el=document.getElementById('tab-oura');
-  let html='';
-  const shots=data.ouraScreenshots||[];
-  const hasKey=!!localStorage.getItem('anthropic-key');
-
-  // Upload zone (always visible so you can always add more)
-  html+=`<div class="oura-upload" id="ouraUpload"
-    onclick="document.getElementById('ouraFile').click()"
-    ondragover="event.preventDefault();this.classList.add('drag-over')"
-    ondragleave="this.classList.remove('drag-over')"
-    ondrop="event.preventDefault();this.classList.remove('drag-over');handleDrop(event)">
-    <div class="oura-upload-icon">\u{1F4F7}</div>
-    <div class="oura-upload-text">${shots.length?'Add more screenshots \u2014 or ':''}Drop Oura screenshots here or <span>browse</span></div>
-    <input type="file" id="ouraFile" accept="image/*" multiple onchange="handleFileSelect(event)">
-  </div>`;
-
-  // Screenshot gallery
-  if(shots.length){
-    html+=`<div class="oura-gallery">`;
-    shots.forEach((src,i)=>{
-      html+=`<div class="oura-thumb">
-        <img src="${src}" onclick="openModal(this.src)" alt="Oura ${i+1}">
-        <button class="oura-thumb-remove" onclick="event.stopPropagation();removeScreenshot(${i})">\u00d7</button>
-      </div>`;
-    });
-    html+=`</div>`;
-
-    // Extract bar
-    html+=`<div class="oura-extract-bar">
-      <button class="oura-extract-btn" onclick="extractOuraData()" ${hasKey?'':'disabled'} id="extractBtn">
-        \u2728 Extract Data
-      </button>
-      <div class="oura-extract-status" id="extractStatus">
-        ${hasKey?shots.length+' screenshot'+(shots.length>1?'s':'')+' ready':'API key required to auto-extract'}
-      </div>
-      <span class="oura-settings-link" onclick="openSettings()">${hasKey?'Settings':'Add API Key'}</span>
-    </div>`;
-  }
-
-  // Metric fields
-  OURA_FIELDS.forEach(section=>{
-    html+=`<div class="oura-section-title">${section.section}</div><div class="oura-grid">`;
-    section.fields.forEach(f=>{
-      html+=`<div class="oura-field">
-        <div class="oura-field-label">${f.label}</div>
-        <input type="text" value="${data.oura[f.id]||''}" placeholder="--"
-          onchange="setOura('${f.id}',this.value)" inputmode="decimal">
-      </div>`;
-    });
-    html+=`</div>`;
-  });
-
-  el.innerHTML=html;
+  save();renderAllProtocol();renderDashboard();
 }
 
 function setOura(id,val){data.oura[id]=val;save();renderDashboard();}
@@ -1097,13 +1070,13 @@ function processImage(file){
     ctx.drawImage(img,0,0,w,h);
     if(!data.ouraScreenshots)data.ouraScreenshots=[];
     data.ouraScreenshots.push(canvas.toDataURL('image/jpeg',0.7));
-    save();renderOura();renderDashboard();
+    save();renderSleep();renderDashboard();
   };
   img.src=URL.createObjectURL(file);
 }
 function removeScreenshot(idx){
   data.ouraScreenshots.splice(idx,1);
-  save();renderOura();renderDashboard();
+  save();renderSleep();renderDashboard();
 }
 function openModal(src){
   document.getElementById('modalImg').src=src;
@@ -1122,7 +1095,7 @@ function saveApiKey(){
   const key=document.getElementById('apiKeyInput').value.trim();
   if(key)localStorage.setItem('anthropic-key',key);
   else localStorage.removeItem('anthropic-key');
-  closeSettings();renderOura();
+  closeSettings();renderSleep();
 }
 
 // ===== CLAUDE VISION EXTRACTION =====
@@ -1186,7 +1159,7 @@ async function extractOuraData(){
       }
     });
 
-    save();renderOura();renderDashboard();
+    save();renderSleep();renderDashboard();
 
     // Re-grab status after re-render
     const newStatus=document.getElementById('extractStatus');
@@ -1205,62 +1178,179 @@ async function extractOuraData(){
   }
 }
 
-// ===== RENDER JOURNAL =====
-function renderJournal(){
-  const el=document.getElementById('tab-journal');
+// ===== RENDER SLEEP TAB (Oura + Journal combined) =====
+function renderSleep(){
+  const el=document.getElementById('tab-sleep');
   const n=data.notes;
+  let html='';
 
-  el.innerHTML=`
-    <div class="journal-row">
-      <div class="journal-section">
-        <div class="journal-label">Energy Level</div>
-        <div class="slider-wrap">
-          <input class="slider" type="range" min="1" max="10" value="${n.energy}"
-            oninput="this.previousElementSibling&&0;this.nextElementSibling.textContent=this.value;setNote('energy',+this.value)">
-          <div class="slider-value">${n.energy}</div>
-        </div>
+  // --- Oura screenshots section ---
+  const shots=data.ouraScreenshots||[];
+  const hasKey=!!localStorage.getItem('anthropic-key');
+
+  html+=`<div class="oura-upload" id="ouraUpload"
+    onclick="document.getElementById('ouraFile').click()"
+    ondragover="event.preventDefault();this.classList.add('drag-over')"
+    ondragleave="this.classList.remove('drag-over')"
+    ondrop="event.preventDefault();this.classList.remove('drag-over');handleDrop(event)">
+    <div class="oura-upload-icon">\u{1F4F7}</div>
+    <div class="oura-upload-text">${shots.length?'Add more screenshots \u2014 or ':''}Drop Oura screenshots here or <span>browse</span></div>
+    <input type="file" id="ouraFile" accept="image/*" multiple onchange="handleFileSelect(event)">
+  </div>`;
+
+  if(shots.length){
+    html+=`<div class="oura-gallery">`;
+    shots.forEach((src,i)=>{
+      html+=`<div class="oura-thumb">
+        <img src="${src}" onclick="openModal(this.src)" alt="Oura ${i+1}">
+        <button class="oura-thumb-remove" onclick="event.stopPropagation();removeScreenshot(${i})">\u00d7</button>
+      </div>`;
+    });
+    html+=`</div>`;
+    html+=`<div class="oura-extract-bar">
+      <button class="oura-extract-btn" onclick="extractOuraData()" ${hasKey?'':'disabled'} id="extractBtn">
+        \u2728 Extract Data
+      </button>
+      <div class="oura-extract-status" id="extractStatus">
+        ${hasKey?shots.length+' screenshot'+(shots.length>1?'s':'')+' ready':'API key required to auto-extract'}
       </div>
-      <div class="journal-section">
-        <div class="journal-label">Sleep Quality (subjective)</div>
-        <div class="slider-wrap">
-          <input class="slider" type="range" min="1" max="10" value="${n.sleepQuality}"
-            oninput="this.nextElementSibling.textContent=this.value;setNote('sleepQuality',+this.value)">
-          <div class="slider-value">${n.sleepQuality}</div>
-        </div>
-      </div>
-    </div>
-    <div class="journal-section">
-      <div class="journal-label">Mood</div>
-      <input class="journal-input" type="text" value="${escHTML(n.mood)}" placeholder="How are you feeling today?"
-        onchange="setNote('mood',this.value)">
-    </div>
-    <div class="journal-section">
-      <div class="journal-label">Arm Symptoms</div>
-      <div class="toggle-wrap" style="margin-bottom:10px">
-        <button class="toggle ${n.armSymptoms?'on':''}" onclick="toggleArm(this)"></button>
-        <span class="toggle-label">${n.armSymptoms?'Yes':'No'}</span>
-      </div>
-      ${n.armSymptoms?`<input class="journal-input" type="text" value="${escHTML(n.armNotes)}" placeholder="Describe symptoms..."
-        onchange="setNote('armNotes',this.value)">`:''}
-    </div>
-    <div class="journal-section">
-      <div class="journal-label">Gut Status</div>
-      <input class="journal-input" type="text" value="${escHTML(n.gutStatus)}" placeholder="How's your gut today?"
-        onchange="setNote('gutStatus',this.value)">
-    </div>
-    <div class="journal-section">
-      <div class="journal-label">General Notes</div>
-      <textarea class="journal-input" placeholder="Anything else to note..."
-        onchange="setNote('general',this.value)">${escHTML(n.general)}</textarea>
+      <span class="oura-settings-link" onclick="openSettings()">${hasKey?'Settings':'Add API Key'}</span>
     </div>`;
+  }
+
+  // --- Oura metric fields ---
+  OURA_FIELDS.forEach(section=>{
+    html+=`<div class="oura-section-title">${section.section}</div><div class="oura-grid">`;
+    section.fields.forEach(f=>{
+      html+=`<div class="oura-field">
+        <div class="oura-field-label">${f.label}</div>
+        <input type="text" value="${data.oura[f.id]||''}" placeholder="--"
+          onchange="setOura('${f.id}',this.value)" inputmode="decimal">
+      </div>`;
+    });
+    html+=`</div>`;
+  });
+
+  // --- Journal section ---
+  html+=`<div class="oura-section-title">How Are You Feeling?</div>`;
+
+  const makeSlider=(label,key,val)=>`<div class="journal-section">
+    <div class="journal-label">${label}</div>
+    <div class="slider-wrap">
+      <input class="slider" type="range" min="1" max="10" value="${val}"
+        oninput="this.nextElementSibling.textContent=this.value;setNote('${key}',+this.value)">
+      <div class="slider-value">${val}</div>
+    </div>
+  </div>`;
+
+  html+=`<div class="journal-row">${makeSlider('Sleep Quality (subjective)','sleepQuality',n.sleepQuality)}${makeSlider('Energy Level','energy',n.energy)}</div>`;
+  html+=`<div class="journal-row">${makeSlider('Anxiety','anxiety',n.anxiety)}${makeSlider('Tiredness','tiredness',n.tiredness)}</div>`;
+
+  html+=`<div class="journal-section">
+    <div class="journal-label">Mood</div>
+    <input class="journal-input" type="text" value="${escHTML(n.mood)}" placeholder="How are you feeling today?"
+      onchange="setNote('mood',this.value)">
+  </div>`;
+  html+=`<div class="journal-section">
+    <div class="journal-label">Gut Status</div>
+    <input class="journal-input" type="text" value="${escHTML(n.gutStatus)}" placeholder="How's your gut today?"
+      onchange="setNote('gutStatus',this.value)">
+  </div>`;
+  html+=`<div class="journal-section">
+    <div class="journal-label">Notes</div>
+    <textarea class="journal-input" placeholder="Anything else to note..."
+      onchange="setNote('general',this.value)">${escHTML(n.general)}</textarea>
+  </div>`;
+
+  el.innerHTML=html;
 }
 
 function setNote(key,val){data.notes[key]=val;save();}
-function toggleArm(btn){
-  data.notes.armSymptoms=!data.notes.armSymptoms;
-  save();renderJournal();
-}
 function escHTML(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ===== RENDER FOOD TAB =====
+function renderFood(){
+  const el=document.getElementById('tab-food');
+  const f=data.food;
+
+  let chips='';
+  FOOD_ITEMS.forEach(it=>{
+    const checked=f.items[it.id];
+    chips+=`<div class="pill-chip ${checked?'checked':''}" onclick="toggleFood('${it.id}')">
+      <div class="check">${checked?'\u2713':''}</div>${it.icon} ${it.name}
+    </div>`;
+  });
+
+  el.innerHTML=`
+    <div class="protocol-section">
+      <div class="protocol-header">
+        <div class="protocol-header-left">
+          <span class="protocol-icon">\u{1F37D}</span>
+          <span class="protocol-title">What did you eat today?</span>
+        </div>
+      </div>
+      <div class="protocol-items">${chips}</div>
+    </div>
+    <div class="journal-section">
+      <div class="journal-label">Other Food / Details</div>
+      <textarea class="journal-input" placeholder="Anything else you ate, meal details, calories, etc..."
+        onchange="setFoodNotes(this.value)">${escHTML(f.notes)}</textarea>
+    </div>`;
+}
+
+function toggleFood(id){
+  data.food.items[id]=!data.food.items[id];
+  save();renderFood();renderDashboard();
+}
+function setFoodNotes(val){data.food.notes=val;save();}
+
+// ===== RENDER BEDTIME TAB =====
+function renderBedtime(){
+  const el=document.getElementById('tab-bedtime');
+  const b=data.bedtime;
+
+  let chips='';
+  BEDTIME_ITEMS.forEach(it=>{
+    const checked=b.items[it.id];
+    chips+=`<div class="pill-chip ${checked?'checked':''}" onclick="toggleBedtime('${it.id}')">
+      <div class="check">${checked?'\u2713':''}</div>${it.name}
+    </div>`;
+  });
+
+  const allDone=BEDTIME_ITEMS.every(it=>b.items[it.id]);
+
+  el.innerHTML=`
+    <div class="protocol-section">
+      <div class="protocol-header">
+        <div class="protocol-header-left">
+          <span class="protocol-icon">\u{1F319}</span>
+          <span class="protocol-title">Bedtime Routine</span>
+        </div>
+        <div class="protocol-header-right">
+          <button class="take-all-btn ${allDone?'all-done':''}" onclick="takeAllBedtime()">${allDone?'\u2713 Done':'All Done'}</button>
+        </div>
+      </div>
+      <div class="protocol-items">${chips}</div>
+    </div>
+    <div class="journal-section">
+      <div class="journal-label">Bedtime</div>
+      <input class="journal-input" type="time" value="${b.time||''}"
+        onchange="setBedtime('time',this.value)">
+    </div>
+    <div class="journal-section">
+      <div class="journal-label">Bedtime Notes</div>
+      <textarea class="journal-input" placeholder="How you're feeling before sleep..."
+        onchange="setBedtime('notes',this.value)">${escHTML(b.notes)}</textarea>
+    </div>`;
+}
+
+function toggleBedtime(id){data.bedtime.items[id]=!data.bedtime.items[id];save();renderBedtime();renderDashboard();}
+function takeAllBedtime(){
+  const allDone=BEDTIME_ITEMS.every(it=>data.bedtime.items[it.id]);
+  BEDTIME_ITEMS.forEach(it=>{data.bedtime.items[it.id]=!allDone});
+  save();renderBedtime();renderDashboard();
+}
+function setBedtime(key,val){data.bedtime[key]=val;save();}
 
 // ===== RENDER TRENDS =====
 function renderTrends(){
@@ -1505,11 +1595,27 @@ function copyForClaude(){
       const bits=[];
       if(n.energy)bits.push('Energy: '+n.energy+'/10');
       if(n.sleepQuality)bits.push('Sleep Quality: '+n.sleepQuality+'/10');
+      if(n.anxiety)bits.push('Anxiety: '+n.anxiety+'/10');
+      if(n.tiredness)bits.push('Tiredness: '+n.tiredness+'/10');
       if(n.mood)bits.push('Mood: '+n.mood);
-      if(n.armSymptoms)bits.push('Arm symptoms: '+(n.armNotes||'yes'));
       if(n.gutStatus)bits.push('Gut: '+n.gutStatus);
       if(bits.length)lines.push('**Journal:** '+bits.join(' | '));
       if(n.general)lines.push('> '+n.general.replace(/\n/g,'\n> '));
+    }
+
+    // Food
+    if(entry.food){
+      const eaten=FOOD_ITEMS.filter(f=>entry.food.items&&entry.food.items[f.id]).map(f=>f.icon+' '+f.name);
+      if(eaten.length)lines.push('**Food:** '+eaten.join(', '));
+      if(entry.food.notes)lines.push('> Food notes: '+entry.food.notes.replace(/\n/g,'\n> '));
+    }
+
+    // Bedtime
+    if(entry.bedtime){
+      const done=BEDTIME_ITEMS.filter(b=>entry.bedtime.items&&entry.bedtime.items[b.id]).map(b=>b.name);
+      if(done.length)lines.push('**Bedtime Routine:** '+done.join(', '));
+      if(entry.bedtime.time)lines.push('Bedtime: '+entry.bedtime.time);
+      if(entry.bedtime.notes)lines.push('> Bedtime notes: '+entry.bedtime.notes.replace(/\n/g,'\n> '));
     }
     lines.push('');
   }
@@ -1542,7 +1648,11 @@ function exportCSV(){
   const headers=['Date'];
   PROTOCOL.forEach(g=>g.items.forEach(it=>headers.push(g.label+': '+it.name)));
   OURA_FIELDS.forEach(s=>s.fields.forEach(f=>headers.push('Oura: '+f.label)));
-  headers.push('Energy','Sleep Quality','Mood','Arm Symptoms','Arm Notes','Gut Status','General Notes');
+  FOOD_ITEMS.forEach(f=>headers.push('Food: '+f.name));
+  headers.push('Food Notes');
+  BEDTIME_ITEMS.forEach(b=>headers.push('Bedtime: '+b.name));
+  headers.push('Bedtime Time','Bedtime Notes');
+  headers.push('Energy','Sleep Quality','Anxiety','Tiredness','Mood','Gut Status','General Notes');
 
   const rows=[headers.join(',')];
 
@@ -1558,9 +1668,15 @@ function exportCSV(){
     OURA_FIELDS.forEach(s=>s.fields.forEach(f=>{
       row.push(d.oura?d.oura[f.id]||'':'');
     }));
+    const fd=d.food||{};
+    FOOD_ITEMS.forEach(f=>row.push(fd.items&&fd.items[f.id]?'Yes':'No'));
+    row.push('"'+(fd.notes||'').replace(/"/g,'""')+'"');
+    const bd=d.bedtime||{};
+    BEDTIME_ITEMS.forEach(b=>row.push(bd.items&&bd.items[b.id]?'Yes':'No'));
+    row.push(bd.time||'','"'+(bd.notes||'').replace(/"/g,'""')+'"');
     const n=d.notes||{};
-    row.push(n.energy||'',n.sleepQuality||'','"'+(n.mood||'').replace(/"/g,'""')+'"',
-      n.armSymptoms?'Yes':'No','"'+(n.armNotes||'').replace(/"/g,'""')+'"',
+    row.push(n.energy||'',n.sleepQuality||'',n.anxiety||'',n.tiredness||'',
+      '"'+(n.mood||'').replace(/"/g,'""')+'"',
       '"'+(n.gutStatus||'').replace(/"/g,'""')+'"','"'+(n.general||'').replace(/"/g,'""')+'"');
     rows.push(row.join(','));
   });
@@ -1579,9 +1695,10 @@ function renderAll(){
   dd.innerHTML=formatDate(currentDate)+(isToday(currentDate)?'<span class="today-badge">Today</span>':'');
 
   renderDashboard();
-  renderProtocol();
-  renderOura();
-  renderJournal();
+  renderAllProtocol();
+  renderSleep();
+  renderFood();
+  renderBedtime();
   // Trends rendered on-demand when tab opens
   if(document.getElementById('tab-trends').classList.contains('active'))renderTrends();
 }
